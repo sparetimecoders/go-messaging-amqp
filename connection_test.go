@@ -31,13 +31,11 @@ import (
 	"testing"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/sparetimecoders/gomessaging/spec"
+	"github.com/sparetimecoders/messaging/specification/spec"
 	"github.com/stretchr/testify/require"
 )
 
-var (
-	testUri = must(amqp.ParseURI(amqpURL))
-)
+var testUri = must(amqp.ParseURI(amqpURL))
 
 func Test_ValidURI(t *testing.T) {
 	conn, err := NewFromURL("svc", "amqp://user:password@localhost:67333/a")
@@ -62,8 +60,7 @@ func Test_InvalidURI(t *testing.T) {
 
 func Test_PublishServiceResponse(t *testing.T) {
 	c := mockConnection(NewMockAmqpChannel())
-	err := c.PublishServiceResponse(context.Background(), "target", "key", struct {
-	}{})
+	err := c.PublishServiceResponse(context.Background(), "target", "key", struct{}{})
 
 	require.NoError(t, err)
 }
@@ -263,7 +260,7 @@ func Test_FailingSetupFunc(t *testing.T) {
 	channel := NewMockAmqpChannel()
 	conn := mockConnection(channel)
 	err := conn.Start(context.Background(), func(c *Connection) error { return nil }, func(c *Connection) error { return fmt.Errorf("error message") })
-	require.EqualError(t, err, "setup function <github.com/sparetimecoders/gomessaging/amqp.Test_FailingSetupFunc.func2> failed: error message")
+	require.EqualError(t, err, "setup function <github.com/sparetimecoders/go-messaging-amqp.Test_FailingSetupFunc.func2> failed: error message")
 }
 
 func Test_AmqpConfig(t *testing.T) {
@@ -275,7 +272,8 @@ func Test_QueueDeclare(t *testing.T) {
 	err := queueDeclare(channel, &consumerConfig{
 		queueName:    "test",
 		exchangeName: "test",
-		queueHeaders: defaultQueueOptions})
+		queueHeaders: defaultQueueOptions,
+	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channel.QueueDeclarations))
 	require.Equal(t, QueueDeclaration{name: "test", durable: true, autoDelete: false, exclusive: false, noWait: false, args: defaultQueueOptions}, channel.QueueDeclarations[0])
@@ -286,7 +284,8 @@ func Test_TransientQueueDeclare(t *testing.T) {
 	err := queueDeclare(channel, &consumerConfig{
 		queueName:    "test",
 		exchangeName: "test",
-		queueHeaders: defaultQueueOptions})
+		queueHeaders: defaultQueueOptions,
+	})
 	require.NoError(t, err)
 
 	require.Equal(t, 1, len(channel.QueueDeclarations))

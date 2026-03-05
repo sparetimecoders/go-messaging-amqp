@@ -8,8 +8,8 @@ require (
 	github.com/google/uuid v1.6.0
 	github.com/prometheus/client_golang v1.18.0
 	github.com/rabbitmq/amqp091-go v1.10.0
-	github.com/sparetimecoders/gomessaging/spec v0.1.0
-	github.com/sparetimecoders/gomessaging/tck v0.1.0
+	github.com/sparetimecoders/messaging/specification/spec v0.0.0-20260305231045-0b5cb1f055f9
+	github.com/sparetimecoders/messaging/specification/tck v0.0.0-20260305231045-0b5cb1f055f9
 	github.com/stretchr/testify v1.11.1
 	go.opentelemetry.io/otel v1.22.0
 	go.opentelemetry.io/otel/sdk v1.22.0
@@ -38,3 +38,7 @@ require (
 	google.golang.org/protobuf v1.31.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
+
+// The tck module in the messaging monorepo uses replace directives that only
+// apply locally. Override its spec dependency to the concrete pseudo-version.
+replace github.com/sparetimecoders/messaging/specification/spec v0.0.0 => github.com/sparetimecoders/messaging/specification/spec v0.0.0-20260305231045-0b5cb1f055f9

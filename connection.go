@@ -33,32 +33,32 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/sparetimecoders/gomessaging/spec"
+	"github.com/sparetimecoders/messaging/specification/spec"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
 
 // Connection is a wrapper around the actual amqp.Connection and amqp.Channel
 type Connection struct {
-	started        bool
-	serviceName    string
-	amqpUri        amqp.URI
-	connection     amqpConnection
-	setupChannel    amqpChannel
-	responseChannel amqpChannel
-	queueConsumers *queueConsumers
-	notificationCh chan<- spec.Notification
-	errorCh        chan<- spec.ErrorNotification
+	started           bool
+	serviceName       string
+	amqpUri           amqp.URI
+	connection        amqpConnection
+	setupChannel      amqpChannel
+	responseChannel   amqpChannel
+	queueConsumers    *queueConsumers
+	notificationCh    chan<- spec.Notification
+	errorCh           chan<- spec.ErrorNotification
 	spanNameFn        func(spec.DeliveryInfo) string
 	publishSpanNameFn func(exchange, routingKey string) string
 	closeListener     chan error
-	prefetchLimit  int
-	logger         *slog.Logger
-	topology       spec.Topology
-	tracerProvider trace.TracerProvider
-	propagator     propagation.TextMapPropagator
-	legacySupport  bool
-	dialFn         func(url string, cfg amqp.Config) (*amqp.Connection, error)
+	prefetchLimit     int
+	logger            *slog.Logger
+	topology          spec.Topology
+	tracerProvider    trace.TracerProvider
+	propagator        propagation.TextMapPropagator
+	legacySupport     bool
+	dialFn            func(url string, cfg amqp.Config) (*amqp.Connection, error)
 }
 
 // ServiceResponsePublisher is the callback signature used to publish a response
@@ -219,12 +219,11 @@ func dialConfig(url string, cfg amqp.Config) (*amqp.Connection, error) {
 	return amqp.DialConfig(url, cfg)
 }
 
-
 func version() string {
 	// NOTE: this doesn't work outside of a build, se we can't really test it
 	if x, ok := debug.ReadBuildInfo(); ok {
 		for _, y := range x.Deps {
-			if y.Path == "github.com/sparetimecoders/gomessaging/amqp" {
+			if y.Path == "github.com/sparetimecoders/go-messaging-amqp" {
 				return y.Version
 			}
 		}
@@ -309,7 +308,8 @@ var (
 	defaultQueueOptions = amqp.Table{
 		amqp.QueueTypeArg:            amqp.QueueTypeQuorum,
 		amqp.SingleActiveConsumerArg: true,
-		amqp.QueueTTLArg:             int(deleteQueueAfter.Seconds() * 1000)}
+		amqp.QueueTTLArg:             int(deleteQueueAfter.Seconds() * 1000),
+	}
 )
 
 func newConnection(serviceName string, uri amqp.URI) *Connection {
