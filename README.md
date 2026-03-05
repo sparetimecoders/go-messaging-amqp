@@ -1,4 +1,4 @@
-# gomessaging/amqp
+# go-messaging-amqp
 
 <p align="center">
   <strong>AMQP/RabbitMQ transport for gomessaging -- opinionated event-driven messaging with deterministic topology, CloudEvents, and OpenTelemetry.</strong>
@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/sparetimecoders/go-messaging-amqp/actions"><img alt="CI" src="https://github.com/sparetimecoders/go-messaging-amqp/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://pkg.go.dev/github.com/sparetimecoders/gomessaging/amqp"><img alt="Go Reference" src="https://pkg.go.dev/badge/github.com/sparetimecoders/gomessaging/amqp.svg"></a>
+  <a href="https://pkg.go.dev/github.com/sparetimecoders/go-messaging-amqp"><img alt="Go Reference" src="https://pkg.go.dev/badge/github.com/sparetimecoders/go-messaging-amqp.svg"></a>
   <a href="LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
@@ -17,7 +17,7 @@ This package implements the [gomessaging specification](https://github.com/spare
 ## Installation
 
 ```sh
-go get github.com/sparetimecoders/gomessaging/amqp
+go get github.com/sparetimecoders/go-messaging-amqp
 ```
 
 Requires Go 1.24+.
@@ -32,8 +32,8 @@ import (
     "fmt"
     "log"
 
-    "github.com/sparetimecoders/gomessaging/amqp"
-    "github.com/sparetimecoders/gomessaging/spec"
+    "github.com/sparetimecoders/go-messaging-amqp"
+    "github.com/sparetimecoders/messaging/specification/spec"
 )
 
 type OrderCreated struct {
