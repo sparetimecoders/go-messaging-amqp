@@ -14,6 +14,8 @@
 
 This package implements the [gomessaging specification](https://github.com/sparetimecoders/messaging) for AMQP 0-9-1 (RabbitMQ). It provides deterministic exchange/queue naming, CloudEvents 1.0 metadata, quorum queues with single active consumer by default, publisher confirms, and full OpenTelemetry tracing and Prometheus metrics.
 
+> **Deep dives**: See the [docs/](docs/) directory for detailed guides on [connection lifecycle](docs/connection.md), [consumers](docs/consumers.md), [publishers](docs/publishers.md), [request-response](docs/request-response.md), [observability](docs/observability.md), and [topology & naming](docs/topology.md).
+
 ## Installation
 
 ```sh
