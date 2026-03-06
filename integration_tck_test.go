@@ -166,7 +166,7 @@ func TestIntegrationTCK(t *testing.T) {
 		amqpURL:       amqpURL,
 		managementURL: managementURL,
 	}
-	tck.RunTCK(spectest.WrapT(t), "../../specification/spec/testdata/tck.json", adapter)
+	tck.RunTCK(spectest.WrapT(t), "testdata/tck.json", adapter)
 }
 
 func TestIntegrationTCKSubprocess(t *testing.T) {
@@ -178,12 +178,12 @@ func TestIntegrationTCKSubprocess(t *testing.T) {
 	// Build the amqp-adapter binary from the tck-adapters module.
 	binDir := t.TempDir()
 	binPath := filepath.Join(binDir, "amqp-adapter")
-	build := exec.Command("go", "build", "-o", binPath, "github.com/sparetimecoders/messaging/specification/tck-adapters/cmd/amqp-adapter")
+	build := exec.Command("go", "build", "-o", binPath, "./cmd/tck-adapter")
 	out, err := build.CombinedOutput()
 	require.NoError(t, err, "failed to build amqp-adapter: %s", out)
 
 	wt := spectest.WrapT(t)
-	scenarios := tck.LoadScenarios(wt, "../../specification/spec/testdata/tck.json")
+	scenarios := tck.LoadScenarios(wt, "testdata/tck.json")
 	for _, scenario := range scenarios {
 		t.Run(scenario.Name, func(t *testing.T) {
 			adapter := tck.NewSubprocessAdapter(spectest.WrapT(t), binPath)
