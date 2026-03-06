@@ -47,7 +47,7 @@ type Publisher struct {
 	propagator     propagation.TextMapPropagator
 	spanNameFn     func(exchange, routingKey string) string
 	confirmCh      chan amqp.Confirmation // nil = no confirms
-	noConfirm      bool                  // true = skip confirm setup
+	noConfirm      bool                   // true = skip confirm setup
 }
 
 // PublisherOption is a functional option for NewPublisher.

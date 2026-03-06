@@ -252,10 +252,10 @@ func Test_CloudEvents_Validation_Warning(t *testing.T) {
 
 	body, _ := json.Marshal(Message{Ok: true})
 	d := amqp.Delivery{
-		Body:       body,
-		RoutingKey: "Order.Created",
-		Exchange:   "events.topic.exchange",
-		Headers:    amqp.Table{},
+		Body:         body,
+		RoutingKey:   "Order.Created",
+		Exchange:     "events.topic.exchange",
+		Headers:      amqp.Table{},
 		Acknowledger: &acker,
 	}
 
@@ -293,11 +293,11 @@ func Test_CloudEvents_CorrelationID_Extraction(t *testing.T) {
 		RoutingKey: "Order.Created",
 		Exchange:   "events.topic.exchange",
 		Headers: amqp.Table{
-			spec.CESpecVersion:  spec.CESpecVersionValue,
-			spec.CEType:         "Order.Created",
-			spec.CESource:       "orders-svc",
-			spec.CEID:           "evt-456",
-			spec.CETime:         "2025-06-15T10:30:00Z",
+			spec.CESpecVersion:   spec.CESpecVersionValue,
+			spec.CEType:          "Order.Created",
+			spec.CESource:        "orders-svc",
+			spec.CEID:            "evt-456",
+			spec.CETime:          "2025-06-15T10:30:00Z",
 			spec.CECorrelationID: "corr-abc-123",
 		},
 		Acknowledger: &acker,
@@ -733,12 +733,12 @@ func Test_CloudEvents_AMQPPrefix_Normalization(t *testing.T) {
 		RoutingKey: "Order.Created",
 		Exchange:   "events.topic.exchange",
 		Headers: amqp.Table{
-			"cloudEvents:specversion":    spec.CESpecVersionValue,
-			"cloudEvents:type":           "Order.Created",
-			"cloudEvents:source":         "orders-svc",
-			"cloudEvents:id":             "evt-amqp-123",
-			"cloudEvents:time":           "2025-06-15T10:30:00Z",
-			"cloudEvents:correlationid":  "corr-amqp-456",
+			"cloudEvents:specversion":   spec.CESpecVersionValue,
+			"cloudEvents:type":          "Order.Created",
+			"cloudEvents:source":        "orders-svc",
+			"cloudEvents:id":            "evt-amqp-123",
+			"cloudEvents:time":          "2025-06-15T10:30:00Z",
+			"cloudEvents:correlationid": "corr-amqp-456",
 		},
 		Acknowledger: &acker,
 	}
