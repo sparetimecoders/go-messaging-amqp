@@ -10,6 +10,20 @@ permissions: {}
 jobs:
   test:
     runs-on: ubuntu-latest
+    services:
+      rabbitmq:
+        image: rabbitmq:4-management
+        ports:
+          - "5672:5672"
+          - "15672:15672"
+        options: >-
+          --health-cmd "rabbitmq-diagnostics -q check_running"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      RABBITMQ_URL: amqp://guest:guest@localhost:5672
+      RABBITMQ_MANAGEMENT_URL: http://guest:guest@localhost:15672
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -19,7 +33,7 @@ jobs:
           go-version-file: go.mod
       - name: Tests
         run: |
-          go test -race -coverprofile=coverage.txt -covermode=atomic -coverpkg="$(go list ./... | tr '\n' , | sed 's/,$//')" ./...
+          go test -race -tags integration -coverprofile=coverage.txt -covermode=atomic -coverpkg="$(go list ./... | tr '\n' , | sed 's/,$//')" ./...
           go tool cover -func=coverage.txt
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@671740ac38dd9b0130fbe1cec585b89eea48d3de # v5.5.2
