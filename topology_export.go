@@ -37,7 +37,7 @@ import (
 func CollectTopology(serviceName string, setups ...Setup) (spec.Topology, error) {
 	noop := &noopChannel{}
 	c := &Connection{
-		serviceName: serviceName,
+		serviceName:  serviceName,
 		setupChannel: noop,
 		connection:   &noopConnection{},
 		queueConsumers: &queueConsumers{
@@ -60,8 +60,8 @@ func CollectTopology(serviceName string, setups ...Setup) (spec.Topology, error)
 // noopConnection implements amqpConnection with all operations succeeding as no-ops.
 type noopConnection struct{}
 
-func (noopConnection) Close() error                        { return nil }
-func (noopConnection) channel() (amqpChannel, error)       { return &noopChannel{}, nil }
+func (noopConnection) Close() error                  { return nil }
+func (noopConnection) channel() (amqpChannel, error) { return &noopChannel{}, nil }
 
 type discardWriter struct{}
 
