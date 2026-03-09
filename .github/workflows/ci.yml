@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     services:
       rabbitmq:
-        image: rabbitmq:4-management
+        image: rabbitmq:4-management@sha256:1dd8956ec57b0ec4f0488f7b4b705710536a0c4a9707eba0e81cb49fbd512056
         ports:
           - "5672:5672"
           - "15672:15672"
