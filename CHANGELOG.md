@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.2](https://github.com/sparetimecoders/go-messaging-amqp/compare/v0.0.1...v0.0.2) (2026-03-13)
+
+
+### Features
+
+* add outbox raw publisher adapter for AMQP ([#21](https://github.com/sparetimecoders/go-messaging-amqp/issues/21)) ([d40334a](https://github.com/sparetimecoders/go-messaging-amqp/commit/d40334a337ebc2b748aab5d727c3f09a1a4f2a05))
+
+
+### Bug Fixes
+
+* **deps:** update opentelemetry-go monorepo to v1.42.0 ([#23](https://github.com/sparetimecoders/go-messaging-amqp/issues/23)) ([7c9c8e2](https://github.com/sparetimecoders/go-messaging-amqp/commit/7c9c8e2a2a020d330664d51bf74ffdb172343dd3))
+* downgrade consumer loop exit log from Error to Warn ([#26](https://github.com/sparetimecoders/go-messaging-amqp/issues/26)) ([37aeaf1](https://github.com/sparetimecoders/go-messaging-amqp/commit/37aeaf10d0adc394d4d3b6ec1af0ca21338b7525))
+* remove synchronize trigger from review gate ([#24](https://github.com/sparetimecoders/go-messaging-amqp/issues/24)) ([b67c676](https://github.com/sparetimecoders/go-messaging-amqp/commit/b67c676036a7c3af37c337fadfba21b3ab5cea2c))
+
 ## 0.0.1 (2026-03-06)
 
 
