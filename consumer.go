@@ -86,7 +86,7 @@ func (c *queueConsumer) loop(deliveries <-chan amqp.Delivery) {
 		}
 		c.handleDelivery(handler, delivery, deliveryInfo)
 	}
-	c.log().Error("consumer loop exited, delivery channel closed", "queue", c.queue)
+	c.log().Warn("consumer loop exited, delivery channel closed", "queue", c.queue)
 }
 
 func (c *queueConsumer) handleDelivery(handler wrappedHandler, delivery amqp.Delivery, deliveryInfo spec.DeliveryInfo) {
