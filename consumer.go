@@ -23,6 +23,7 @@
 package amqp
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -109,7 +110,7 @@ func (c *queueConsumer) handleDelivery(handler wrappedHandler, delivery amqp.Del
 		)
 	}
 
-	headerCtx := extractToContext(delivery.Headers, c.propagator)
+	headerCtx := extractToContext(context.Background(), delivery.Headers, c.propagator)
 
 	metadata := spec.MetadataFromHeaders(deliveryInfo.Headers)
 	if isLegacy && c.legacySupport {
