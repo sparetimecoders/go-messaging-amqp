@@ -61,11 +61,13 @@ func responseWrapper[T, R any](handler spec.RequestResponseEventHandler[T, R], r
 // sendingService returns the name of the service that produced the message
 // Can be used to send a handlerResponse, see PublishServiceResponse
 func sendingService(di spec.DeliveryInfo) (string, error) {
-	if h, exist := di.Headers[headerService]; exist {
-		switch v := h.(type) {
-		case string:
-			return v, nil
-		}
+	h, exist := di.Headers[headerService]
+	if !exist {
+		return "", fmt.Errorf("no %q header in message from exchange %s (routing key: %s)", headerService, di.Source, di.Key)
 	}
-	return "", fmt.Errorf("no %q header in message from exchange %s (routing key: %s)", headerService, di.Source, di.Key)
+	v, ok := h.(string)
+	if !ok {
+		return "", fmt.Errorf("%q header has unexpected type %T, want string, in message from exchange %s (routing key: %s)", headerService, h, di.Source, di.Key)
+	}
+	return v, nil
 }

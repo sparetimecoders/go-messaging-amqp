@@ -208,7 +208,8 @@ func InitMetrics(registerer prometheus.Registerer, opts ...MetricsOption) error 
 			mv.Reset()
 		}
 		err := registerer.Register(collector)
-		if err != nil && !errors.As(err, &prometheus.AlreadyRegisteredError{}) {
+		var alreadyRegistered prometheus.AlreadyRegisteredError
+		if err != nil && !errors.As(err, &alreadyRegistered) {
 			return err
 		}
 	}
