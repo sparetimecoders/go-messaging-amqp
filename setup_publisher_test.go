@@ -207,7 +207,6 @@ func Test_Publisher_Setups(t *testing.T) {
 				} else if tt.expectedError == "" {
 					require.Fail(t, "nothing published, and no error wanted!")
 				}
-				i++
 			}
 		})
 	}

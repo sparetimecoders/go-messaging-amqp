@@ -27,6 +27,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -37,8 +38,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-// Publisher is used to send messages
+// Publisher is used to send messages.
+// It is safe for concurrent use from multiple goroutines.
 type Publisher struct {
+	mu             sync.Mutex
 	channel        amqpChannel
 	exchange       string
 	serviceName    string
@@ -71,10 +74,8 @@ func WithoutPublisherConfirms() PublisherOption {
 	}
 }
 
-var (
-	// ErrNoMessageTypeForRouteKey is returned when a TypeMapper has no type registered for the routing key.
-	ErrNoMessageTypeForRouteKey = fmt.Errorf("no message type for routing key configured")
-)
+// ErrNoMessageTypeForRouteKey is returned when a TypeMapper has no type registered for the routing key.
+var ErrNoMessageTypeForRouteKey = fmt.Errorf("no message type for routing key configured")
 
 // NewPublisher creates an uninitialized Publisher. Pass it to a publisher Setup function
 // (e.g. EventStreamPublisher, ServicePublisher) which wires it to the connection's channel
@@ -92,6 +93,9 @@ func NewPublisher(opts ...PublisherOption) *Publisher {
 // By default, Publish waits for broker confirmation and returns an error if the
 // broker nacks. Use WithoutPublisherConfirms to disable this behavior.
 func (p *Publisher) Publish(ctx context.Context, routingKey string, msg any, headers ...Header) error {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
 	table := amqp.Table{}
 	for _, v := range p.defaultHeaders {
 		table[v.Key] = v.Value

@@ -65,6 +65,14 @@ func Test_RequestResponseHandler(t *testing.T) {
 	require.Nil(t, missing)
 	require.False(t, exists)
 
+	// Test sendingService with non-string header type
+	_, err = sendingService(spec.DeliveryInfo{
+		Headers: spec.Headers{headerService: 42},
+		Source:  "test-exchange",
+		Key:     "test-key",
+	})
+	require.ErrorContains(t, err, "unexpected type int, want string")
+
 	msg, _ := json.Marshal(Message{Ok: true})
 	err = handler(context.TODO(), unmarshalEvent{
 		Metadata: spec.Metadata{},
