@@ -70,9 +70,8 @@ func Test_AmqpVersion(t *testing.T) {
 }
 
 func Test_Start_MultipleCallsFails(t *testing.T) {
-	conn := &Connection{
-		started: true,
-	}
+	conn := &Connection{}
+	conn.started.Store(true)
 	err := conn.Start(context.Background())
 	require.EqualError(t, err, "already started")
 }
@@ -218,7 +217,8 @@ func Test_messageHandlerBindQueueToExchange(t *testing.T) {
 func Test_CloseCallsUnderlyingCloseMethod(t *testing.T) {
 	channel := NewMockAmqpChannel()
 	conn := mockConnection(channel)
-	conn.started = true
+	conn.started.Store(true)
+	conn.done = make(chan struct{})
 	err := conn.Close()
 	require.NoError(t, err)
 	require.Equal(t, true, conn.connection.(*MockAmqpConnection).CloseCalled)
@@ -227,7 +227,7 @@ func Test_CloseCallsUnderlyingCloseMethod(t *testing.T) {
 func Test_CloseWhenNotStarted(t *testing.T) {
 	channel := NewMockAmqpChannel()
 	conn := mockConnection(channel)
-	conn.started = false
+	conn.started.Store(false)
 	err := conn.Close()
 	require.NoError(t, err)
 	require.Equal(t, false, conn.connection.(*MockAmqpConnection).CloseCalled)

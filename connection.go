@@ -30,6 +30,7 @@ import (
 	"log/slog"
 	"os"
 	"runtime/debug"
+	"sync/atomic"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -40,7 +41,8 @@ import (
 
 // Connection is a wrapper around the actual amqp.Connection and amqp.Channel
 type Connection struct {
-	started           bool
+	started           atomic.Bool
+	done              chan struct{}
 	serviceName       string
 	amqpUri           amqp.URI
 	connection        amqpConnection
@@ -112,9 +114,10 @@ func (c *Connection) tracer() trace.Tracer {
 // Start connects to AMQP, applies each Setup function to declare exchanges, queues,
 // and bindings, then starts all consumers. It returns ErrAlreadyStarted if called twice.
 func (c *Connection) Start(ctx context.Context, opts ...Setup) (err error) {
-	if c.started {
+	if !c.started.CompareAndSwap(false, true) {
 		return ErrAlreadyStarted
 	}
+	c.done = make(chan struct{})
 	if c.logger == nil {
 		c.logger = slog.Default().With("service", c.serviceName)
 	}
@@ -158,9 +161,17 @@ func (c *Connection) Start(ctx context.Context, opts ...Setup) (err error) {
 			connCloseCh := make(chan *amqp.Error, 1)
 			ac.Connection.NotifyClose(connCloseCh)
 			go func() {
-				for ev := range connCloseCh {
-					if ev != nil {
-						c.closeListener <- fmt.Errorf("connection closed: %s", ev.Error())
+				for {
+					select {
+					case ev, ok := <-connCloseCh:
+						if !ok {
+							return
+						}
+						if ev != nil {
+							c.closeListener <- fmt.Errorf("connection closed: %s", ev.Error())
+						}
+					case <-c.done:
+						return
 					}
 				}
 			}()
@@ -171,16 +182,16 @@ func (c *Connection) Start(ctx context.Context, opts ...Setup) (err error) {
 		return err
 	}
 
-	c.started = true
 	c.logger.Info("connection started", "consumers", len(c.queueConsumers.consumers))
 	return nil
 }
 
 // Close closes the amqp connection, see amqp.Connection.Close
 func (c *Connection) Close() error {
-	if !c.started {
+	if !c.started.CompareAndSwap(true, false) {
 		return nil
 	}
+	close(c.done)
 	return c.connection.Close()
 }
 
@@ -206,9 +217,17 @@ func (c *amqpConn) channel() (amqpChannel, error) {
 	ch.NotifyClose(errChannel)
 	if c.conn.closeListener != nil {
 		go func() {
-			for ev := range errChannel {
-				if ev != nil {
-					c.conn.closeListener <- errors.New(ev.Error())
+			for {
+				select {
+				case ev, ok := <-errChannel:
+					if !ok {
+						return
+					}
+					if ev != nil {
+						c.conn.closeListener <- errors.New(ev.Error())
+					}
+				case <-c.conn.done:
+					return
 				}
 			}
 		}()
@@ -311,7 +330,7 @@ var (
 	defaultQueueOptions = amqp.Table{
 		amqp.QueueTypeArg:            amqp.QueueTypeQuorum,
 		amqp.SingleActiveConsumerArg: true,
-		amqp.QueueTTLArg:             int(deleteQueueAfter.Seconds() * 1000),
+		amqp.QueueTTLArg:             int32(deleteQueueAfter.Seconds() * 1000),
 	}
 )
 

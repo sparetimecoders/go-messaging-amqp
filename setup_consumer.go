@@ -38,6 +38,8 @@ type (
 	TypeMapper func(routingKey string) (reflect.Type, bool)
 )
 
+const transientQueueTTLMs = int32(1000)
+
 // TypeMappingHandler wraps an EventHandler[any] and uses the TypeMapper to unmarshal each
 // message payload into the correct concrete type before passing it to the handler.
 // This is useful when a single consumer handles multiple event types on a wildcard routing key.
@@ -183,10 +185,10 @@ func TransientStreamConsumer[T any](exchange, routingKey string, handler spec.Ev
 	exchangeName := topicExchangeName(exchange)
 	return func(c *Connection) error {
 		queueName := serviceEventRandomQueueName(exchangeName, c.serviceName)
-		opts = append(opts, func(config *consumerConfig) error {
-			config.queueHeaders[amqp.QueueTTLArg] = 1000
+		opts = append([]ConsumerOptions{func(config *consumerConfig) error {
+			config.queueHeaders[amqp.QueueTTLArg] = transientQueueTTLMs
 			return nil
-		})
+		}}, opts...)
 		config, err := newConsumerConfig(routingKey,
 			exchangeName,
 			queueName,

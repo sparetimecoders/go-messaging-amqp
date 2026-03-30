@@ -38,7 +38,7 @@ type wrappedHandler func(ctx context.Context, event unmarshalEvent) error
 func newWrappedHandler[T any](handler spec.EventHandler[T]) wrappedHandler {
 	var t T
 	t1 := reflect.TypeOf(t)
-	if t1 == nil || t1.String() == "json.RawMessage" {
+	if t1 == nil || t1 == reflect.TypeFor[json.RawMessage]() {
 		// Map to any/json.RawMessage requested, dont unmarshal
 		return func(ctx context.Context, event unmarshalEvent) error {
 			consumableEvent := spec.ConsumableEvent[T]{
