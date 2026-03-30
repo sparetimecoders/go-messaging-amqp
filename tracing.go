@@ -108,8 +108,9 @@ func injectToHeaders(ctx context.Context, headers amqp.Table, p propagation.Text
 	return headers
 }
 
-// extractToContext extracts the span context from AMQP headers.
-func extractToContext(headers amqp.Table, p propagation.TextMapPropagator) context.Context {
+// extractToContext extracts the span context from AMQP headers into a child of
+// the given parent context, preserving deadlines, cancellation, and values.
+func extractToContext(ctx context.Context, headers amqp.Table, p propagation.TextMapPropagator) context.Context {
 	carrier := propagation.MapCarrier{}
 	for k, v := range headers {
 		value, ok := v.(string)
@@ -118,5 +119,5 @@ func extractToContext(headers amqp.Table, p propagation.TextMapPropagator) conte
 		}
 	}
 
-	return propagatorOrGlobal(p).Extract(context.Background(), carrier)
+	return propagatorOrGlobal(p).Extract(ctx, carrier)
 }

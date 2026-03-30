@@ -688,7 +688,7 @@ func Test_CEMessage_WithLegacySupport_NotEnriched(t *testing.T) {
 
 func Test_ConsumerLoop_LogsOnChannelClose(t *testing.T) {
 	var buf bytes.Buffer
-	logger := slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelError}))
+	logger := slog.New(slog.NewTextHandler(&buf, &slog.HandlerOptions{Level: slog.LevelWarn}))
 	consumer := queueConsumer{
 		queue:    "test-queue",
 		handlers: routingKeyHandler{},
