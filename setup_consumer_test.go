@@ -120,13 +120,26 @@ func Test_Consumer_Setups(t *testing.T) {
 					return errors.New("failed")
 				}),
 			},
-			expectedExchanges: []ExchangeDeclaration{{name: "events.topic.exchange", kind: "topic", durable: true, autoDelete: false, internal: false, noWait: false, args: nil}},
-			expectedBindings:  []BindingDeclaration{{queue: "events.topic.exchange.queue.svc-00010203-0405-4607-8809-0a0b0c0d0e0f", key: "root.key", exchange: "events.topic.exchange", noWait: false, args: amqp.Table{}}},
-			expectedQueues: []QueueDeclaration{{name: "events.topic.exchange.queue.svc-00010203-0405-4607-8809-0a0b0c0d0e0f", durable: true, autoDelete: false, exclusive: false, noWait: false, args: func() map[string]any {
-				clone := maps.Clone(defaultQueueOptions)
-				clone[amqp.QueueTTLArg] = 1000
-				return clone
-			}()}},
+			expectedExchanges: []ExchangeDeclaration{
+				{name: "events.topic.exchange", kind: "topic", durable: true, autoDelete: false, internal: false, noWait: false, args: nil},
+				{name: "events.topic.exchange", kind: "topic", durable: true, autoDelete: false, internal: false, noWait: false, args: nil},
+			},
+			expectedBindings: []BindingDeclaration{
+				{queue: "events.topic.exchange.queue.svc-00010203-0405-4607-8809-0a0b0c0d0e0f", key: "root.key", exchange: "events.topic.exchange", noWait: false, args: amqp.Table{}},
+				{queue: "events.topic.exchange.queue.svc-00010203-0405-4607-8809-0a0b0c0d0e0f", key: "root.#", exchange: "events.topic.exchange", noWait: false, args: amqp.Table{}},
+			},
+			expectedQueues: []QueueDeclaration{
+				{name: "events.topic.exchange.queue.svc-00010203-0405-4607-8809-0a0b0c0d0e0f", durable: true, autoDelete: false, exclusive: false, noWait: false, args: func() map[string]any {
+					clone := maps.Clone(defaultQueueOptions)
+					clone[amqp.QueueTTLArg] = 1000
+					return clone
+				}()},
+				{name: "events.topic.exchange.queue.svc-00010203-0405-4607-8809-0a0b0c0d0e0f", durable: true, autoDelete: false, exclusive: false, noWait: false, args: func() map[string]any {
+					clone := maps.Clone(defaultQueueOptions)
+					clone[amqp.QueueTTLArg] = 1000
+					return clone
+				}()},
+			},
 			expectedError: "routingkey root.# overlaps root.key for queue events.topic.exchange.queue.svc-00010203-0405-4607-8809-0a0b0c0d0e0f, consider using AddQueueNameSuffix",
 		},
 		{

@@ -252,9 +252,7 @@ func NewMockAmqpChannel() *MockAmqpChannel {
 	}
 }
 
-var (
-	_ amqpChannel = &MockAmqpChannel{}
-)
+var _ amqpChannel = &MockAmqpChannel{}
 
 func mockConnection(channel *MockAmqpChannel) *Connection {
 	c := newConnection("svc", amqp.URI{})
@@ -266,6 +264,13 @@ func mockConnection(channel *MockAmqpChannel) *Connection {
 		},
 	}
 	return c
+}
+
+func must[T any](t T, err error) T {
+	if err != nil {
+		panic(err)
+	}
+	return t
 }
 
 type badRand struct{}

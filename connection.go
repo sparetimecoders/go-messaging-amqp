@@ -138,6 +138,7 @@ func (c *Connection) Start(ctx context.Context, opts ...Setup) (err error) {
 	}
 
 	if c.setupChannel, err = c.connection.channel(); err != nil {
+		_ = c.responseChannel.Close()
 		return fmt.Errorf("failed to create setup channel: %w", err)
 	}
 
@@ -198,7 +199,7 @@ func (c *amqpConn) channel() (amqpChannel, error) {
 		return nil, err
 	}
 	if err := ch.Qos(c.conn.prefetchLimit, 0, false); err != nil {
-		return nil, fmt.Errorf("error setting qos: %s", err)
+		return nil, fmt.Errorf("error setting qos: %w", err)
 	}
 
 	errChannel := make(chan *amqp.Error)
@@ -269,14 +270,16 @@ func (c *Connection) connectToAmqpURL() (err error) {
 }
 
 func (c *Connection) messageHandlerBindQueueToExchange(cfg *consumerConfig) error {
-	if err := c.queueConsumers.add(cfg.queueName, cfg.routingKey, cfg.handler); err != nil {
-		return err
-	}
-
 	if err := exchangeDeclare(c.setupChannel, cfg.exchangeName, cfg.kind); err != nil {
 		return err
 	}
 	if err := queueDeclare(c.setupChannel, cfg); err != nil {
+		return err
+	}
+	if err := c.setupChannel.QueueBind(cfg.queueName, cfg.routingKey, cfg.exchangeName, false, cfg.queueBindingHeaders); err != nil {
+		return err
+	}
+	if err := c.queueConsumers.add(cfg.queueName, cfg.routingKey, cfg.handler); err != nil {
 		return err
 	}
 	c.logger.Info("bound queue to exchange",
@@ -285,7 +288,7 @@ func (c *Connection) messageHandlerBindQueueToExchange(cfg *consumerConfig) erro
 		"routingKey", cfg.routingKey,
 		"kind", cfg.kind,
 	)
-	return c.setupChannel.QueueBind(cfg.queueName, cfg.routingKey, cfg.exchangeName, false, cfg.queueBindingHeaders)
+	return nil
 }
 
 func exchangeDeclare(channel amqpChannel, name string, kind string) error {
@@ -335,6 +338,9 @@ func (c *Connection) startConsumers() error {
 		consumer.propagator = c.propagator
 		consumer.serviceName = c.serviceName
 		consumer.legacySupport = c.legacySupport
+		if c.spanNameFn != nil {
+			consumer.spanNameFn = c.spanNameFn
+		}
 
 		ch, err := c.connection.channel()
 		if err != nil {

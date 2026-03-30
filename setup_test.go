@@ -32,7 +32,7 @@ import (
 	"github.com/sparetimecoders/messaging/specification/spec"
 	"github.com/stretchr/testify/require"
 	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
+	"go.opentelemetry.io/otel/trace/noop"
 )
 
 func Test_WithLogger(t *testing.T) {
@@ -47,7 +47,7 @@ func Test_WithLogger(t *testing.T) {
 func Test_WithTracing(t *testing.T) {
 	channel := NewMockAmqpChannel()
 	conn := mockConnection(channel)
-	tp := trace.NewNoopTracerProvider()
+	tp := noop.NewTracerProvider()
 	err := WithTracing(tp)(conn)
 	require.NoError(t, err)
 	require.Equal(t, tp, conn.tracerProvider)
@@ -91,6 +91,25 @@ func Test_CloseListener(t *testing.T) {
 	err := CloseListener(ch)(conn)
 	require.NoError(t, err)
 	require.Equal(t, ch, conn.closeListener)
+}
+
+func Test_WithSpanNameFn_PropagatedToConsumers(t *testing.T) {
+	channel := NewMockAmqpChannel()
+	conn := mockConnection(channel)
+	fn := func(info spec.DeliveryInfo) string {
+		return "custom-consumer-span"
+	}
+	err := conn.Start(context.Background(),
+		WithSpanNameFn(fn),
+		EventStreamConsumer("key", func(ctx context.Context, msg spec.ConsumableEvent[TestMessage]) error {
+			return nil
+		}),
+	)
+	require.NoError(t, err)
+
+	for _, consumer := range conn.queueConsumers.consumers {
+		require.Equal(t, "custom-consumer-span", consumer.spanNameFn(spec.DeliveryInfo{}))
+	}
 }
 
 func Test_WithLegacySupport(t *testing.T) {
