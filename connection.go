@@ -51,6 +51,7 @@ type Connection struct {
 	errorCh           chan<- spec.ErrorNotification
 	spanNameFn        func(spec.DeliveryInfo) string
 	publishSpanNameFn func(exchange, routingKey string) string
+	consumerChannels  []amqpChannel
 	closeListener     chan error
 	prefetchLimit     int
 	logger            *slog.Logger
@@ -121,7 +122,7 @@ func (c *Connection) Start(ctx context.Context, opts ...Setup) (err error) {
 	if c.queueConsumers == nil {
 		c.queueConsumers = &queueConsumers{
 			consumers:  make(map[string]*queueConsumer),
-			spanNameFn: spanNameFn,
+			spanNameFn: defaultSpanName,
 		}
 	} else if c.queueConsumers.consumers == nil {
 		c.queueConsumers.consumers = make(map[string]*queueConsumer)
@@ -181,7 +182,17 @@ func (c *Connection) Close() error {
 	if !c.started {
 		return nil
 	}
-	return c.connection.Close()
+	c.started = false
+	var errs []error
+	for _, ch := range c.consumerChannels {
+		if err := ch.Close(); err != nil {
+			errs = append(errs, err)
+		}
+	}
+	if err := c.connection.Close(); err != nil {
+		errs = append(errs, err)
+	}
+	return errors.Join(errs...)
 }
 
 type amqpConnection interface {
@@ -189,7 +200,8 @@ type amqpConnection interface {
 	channel() (amqpChannel, error)
 }
 type amqpConn struct {
-	conn *Connection
+	prefetchLimit int
+	closeListener chan error
 	*amqp.Connection
 }
 
@@ -198,17 +210,17 @@ func (c *amqpConn) channel() (amqpChannel, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := ch.Qos(c.conn.prefetchLimit, 0, false); err != nil {
+	if err := ch.Qos(c.prefetchLimit, 0, false); err != nil {
 		return nil, fmt.Errorf("error setting qos: %w", err)
 	}
 
 	errChannel := make(chan *amqp.Error)
 	ch.NotifyClose(errChannel)
-	if c.conn.closeListener != nil {
+	if c.closeListener != nil {
 		go func() {
 			for ev := range errChannel {
 				if ev != nil {
-					c.conn.closeListener <- errors.New(ev.Error())
+					c.closeListener <- errors.New(ev.Error())
 				}
 			}
 		}()
@@ -262,8 +274,9 @@ func (c *Connection) connectToAmqpURL() (err error) {
 		return err
 	}
 	c.connection = &amqpConn{
-		Connection: conn,
-		conn:       c,
+		Connection:    conn,
+		prefetchLimit: c.prefetchLimit,
+		closeListener: c.closeListener,
 	}
 
 	return nil
@@ -304,14 +317,15 @@ const (
 
 const contentType = "application/json"
 
-var (
-	deleteQueueAfter    = 5 * 24 * time.Hour
-	defaultQueueOptions = amqp.Table{
+var deleteQueueAfter = 5 * 24 * time.Hour
+
+func defaultQueueOpts() amqp.Table {
+	return amqp.Table{
 		amqp.QueueTypeArg:            amqp.QueueTypeQuorum,
 		amqp.SingleActiveConsumerArg: true,
 		amqp.QueueTTLArg:             int(deleteQueueAfter.Seconds() * 1000),
 	}
-)
+}
 
 func newConnection(serviceName string, uri amqp.URI) *Connection {
 	logger := slog.Default().With("service", serviceName)
@@ -320,7 +334,7 @@ func newConnection(serviceName string, uri amqp.URI) *Connection {
 		amqpUri:     uri,
 		queueConsumers: &queueConsumers{
 			consumers:  make(map[string]*queueConsumer),
-			spanNameFn: spanNameFn,
+			spanNameFn: defaultSpanName,
 		},
 		prefetchLimit: 20,
 		logger:        logger,
@@ -344,6 +358,7 @@ func (c *Connection) startConsumers() error {
 		if err != nil {
 			return fmt.Errorf("failed to create consumer channel for queue %s: %w", consumer.queue, err)
 		}
+		c.consumerChannels = append(c.consumerChannels, ch)
 
 		if deliveries, err := consumer.consume(ch, c.notificationCh, c.errorCh); err != nil {
 			return fmt.Errorf("failed to create consumer for queue %s: %w", consumer.queue, err)

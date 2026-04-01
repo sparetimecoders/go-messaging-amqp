@@ -89,7 +89,7 @@ func WithErrorChannel(errorCh chan<- spec.ErrorNotification) Setup {
 	}
 }
 
-var spanNameFn = func(info spec.DeliveryInfo) string {
+func defaultSpanName(info spec.DeliveryInfo) string {
 	return fmt.Sprintf("%s#%s", trimExchangeFromQueue(info.Destination, info.Source), info.Key)
 }
 
@@ -103,7 +103,7 @@ func WithPropagator(p propagation.TextMapPropagator) Setup {
 }
 
 // WithSpanNameFn specifies a function that will get called when a new consumer span is created.
-// By default the spanNameFn will be used.
+// By default defaultSpanName will be used.
 func WithSpanNameFn(f func(spec.DeliveryInfo) string) Setup {
 	return func(conn *Connection) error {
 		conn.spanNameFn = f

@@ -24,7 +24,6 @@ package amqp
 
 import (
 	"fmt"
-	"maps"
 	"reflect"
 	"runtime"
 
@@ -43,7 +42,7 @@ func newConsumerConfig(routingKey string, exchangeName string, queueName string,
 		queueName:           queueName,
 		exchangeName:        exchangeName,
 		kind:                kind,
-		queueHeaders:        maps.Clone(defaultQueueOptions),
+		queueHeaders:        defaultQueueOpts(),
 		queueBindingHeaders: make(amqp.Table),
 	}
 

@@ -53,7 +53,7 @@ func Test_RequestResponseHandler(t *testing.T) {
 	require.Equal(t, ExchangeDeclaration{name: "svc.direct.exchange.request", noWait: false, internal: false, autoDelete: false, durable: true, kind: "direct", args: nil}, channel.ExchangeDeclarations[1])
 
 	require.Equal(t, 1, len(channel.QueueDeclarations))
-	require.Equal(t, QueueDeclaration{name: "svc.direct.exchange.request.queue", noWait: false, autoDelete: false, durable: true, exclusive: false, args: defaultQueueOptions}, channel.QueueDeclarations[0])
+	require.Equal(t, QueueDeclaration{name: "svc.direct.exchange.request.queue", noWait: false, autoDelete: false, durable: true, exclusive: false, args: defaultQueueOpts()}, channel.QueueDeclarations[0])
 
 	require.Equal(t, 1, len(channel.BindingDeclarations))
 	require.Equal(t, BindingDeclaration{queue: "svc.direct.exchange.request.queue", noWait: false, exchange: "svc.direct.exchange.request", key: "key", args: amqp091.Table{}}, channel.BindingDeclarations[0])

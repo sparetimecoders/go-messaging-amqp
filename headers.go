@@ -43,10 +43,8 @@ func (h Header) validateKey() error {
 	if h.Key == "" {
 		return ErrEmptyHeaderKey
 	}
-	for _, rh := range reservedHeaderKeys {
-		if rh == h.Key {
-			return fmt.Errorf("reserved key %s used, please change to use another one", rh)
-		}
+	if _, reserved := reservedHeaderKeys[h.Key]; reserved {
+		return fmt.Errorf("reserved key %s used, please change to use another one", h.Key)
 	}
 	return nil
 }
@@ -61,4 +59,4 @@ func validateHeaders(h spec.Headers) error {
 	return nil
 }
 
-var reservedHeaderKeys = []string{headerService}
+var reservedHeaderKeys = map[string]struct{}{headerService: {}}
