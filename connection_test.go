@@ -279,19 +279,6 @@ func Test_QueueDeclare(t *testing.T) {
 	require.Equal(t, QueueDeclaration{name: "test", durable: true, autoDelete: false, exclusive: false, noWait: false, args: defaultQueueOpts()}, channel.QueueDeclarations[0])
 }
 
-func Test_TransientQueueDeclare(t *testing.T) {
-	channel := NewMockAmqpChannel()
-	err := queueDeclare(channel, &consumerConfig{
-		queueName:    "test",
-		exchangeName: "test",
-		queueHeaders: defaultQueueOpts(),
-	})
-	require.NoError(t, err)
-
-	require.Equal(t, 1, len(channel.QueueDeclarations))
-	require.Equal(t, QueueDeclaration{name: "test", durable: true, autoDelete: false, exclusive: false, noWait: false, args: defaultQueueOpts()}, channel.QueueDeclarations[0])
-}
-
 func Test_ExchangeDeclare(t *testing.T) {
 	channel := NewMockAmqpChannel()
 

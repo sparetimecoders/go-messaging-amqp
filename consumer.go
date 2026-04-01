@@ -138,37 +138,7 @@ func (c *queueConsumer) handleDelivery(handler wrappedHandler, delivery amqp.Del
 		span.SetStatus(codes.Error, err.Error())
 		elapsed := time.Since(startTime).Milliseconds()
 		notifyEventHandlerFailed(c.errorCh, deliveryInfo, elapsed, err)
-		if errors.Is(err, spec.ErrParseJSON) {
-			c.log().Warn("failed to parse message, nacking without requeue",
-				"routingKey", deliveryInfo.Key,
-				"exchange", deliveryInfo.Source,
-				"error", err,
-			)
-			eventNotParsable(deliveryInfo.Destination, deliveryInfo.Key)
-			if err := delivery.Nack(false, false); err != nil {
-				c.log().Warn("failed to nack delivery", "routingKey", deliveryInfo.Key, "error", err)
-			}
-		} else if errors.Is(err, ErrNoMessageTypeForRouteKey) {
-			c.log().Warn("no type mapping for routing key, rejecting",
-				"routingKey", deliveryInfo.Key,
-				"exchange", deliveryInfo.Source,
-			)
-			eventWithoutHandler(deliveryInfo.Destination, deliveryInfo.Key)
-			if err := delivery.Reject(false); err != nil {
-				c.log().Warn("failed to reject delivery", "routingKey", deliveryInfo.Key, "error", err)
-			}
-		} else {
-			c.log().Error("handler failed, nacking with requeue",
-				"routingKey", deliveryInfo.Key,
-				"exchange", deliveryInfo.Source,
-				"error", err,
-				"durationMs", elapsed,
-			)
-			eventNack(deliveryInfo.Destination, deliveryInfo.Key, elapsed)
-			if err := delivery.Nack(false, true); err != nil {
-				c.log().Warn("failed to nack delivery", "routingKey", deliveryInfo.Key, "error", err)
-			}
-		}
+		c.rejectOrNack(delivery, deliveryInfo, elapsed, err)
 		return
 	}
 
@@ -191,6 +161,40 @@ func (c *queueConsumer) getTracer() trace.Tracer {
 		return c.tracer
 	}
 	return tracerFromProvider(nil)
+}
+
+func (c *queueConsumer) rejectOrNack(delivery amqp.Delivery, deliveryInfo spec.DeliveryInfo, elapsedMs int64, err error) {
+	if errors.Is(err, spec.ErrParseJSON) {
+		c.log().Warn("failed to parse message, nacking without requeue",
+			"routingKey", deliveryInfo.Key,
+			"exchange", deliveryInfo.Source,
+			"error", err,
+		)
+		eventNotParsable(deliveryInfo.Destination, deliveryInfo.Key)
+		if err := delivery.Nack(false, false); err != nil {
+			c.log().Warn("failed to nack delivery", "routingKey", deliveryInfo.Key, "error", err)
+		}
+	} else if errors.Is(err, ErrNoMessageTypeForRouteKey) {
+		c.log().Warn("no type mapping for routing key, rejecting",
+			"routingKey", deliveryInfo.Key,
+			"exchange", deliveryInfo.Source,
+		)
+		eventWithoutHandler(deliveryInfo.Destination, deliveryInfo.Key)
+		if err := delivery.Reject(false); err != nil {
+			c.log().Warn("failed to reject delivery", "routingKey", deliveryInfo.Key, "error", err)
+		}
+	} else {
+		c.log().Error("handler failed, nacking with requeue",
+			"routingKey", deliveryInfo.Key,
+			"exchange", deliveryInfo.Source,
+			"error", err,
+			"durationMs", elapsedMs,
+		)
+		eventNack(deliveryInfo.Destination, deliveryInfo.Key, elapsedMs)
+		if err := delivery.Nack(false, true); err != nil {
+			c.log().Warn("failed to nack delivery", "routingKey", deliveryInfo.Key, "error", err)
+		}
+	}
 }
 
 type queueConsumers struct {
