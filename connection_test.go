@@ -233,6 +233,42 @@ func Test_CloseWhenNotStarted(t *testing.T) {
 	require.Equal(t, false, conn.connection.(*MockAmqpConnection).CloseCalled)
 }
 
+func Test_CloseClosesConsumerChannels(t *testing.T) {
+	channel := NewMockAmqpChannel()
+	conn := mockConnection(channel)
+	conn.started = true
+
+	mockCh := NewMockAmqpChannel()
+	closeCalled := false
+	mockCh.closeFn = func() error {
+		closeCalled = true
+		return nil
+	}
+	conn.consumerChannels = append(conn.consumerChannels, mockCh)
+
+	err := conn.Close()
+	require.NoError(t, err)
+	require.True(t, closeCalled)
+	require.True(t, conn.connection.(*MockAmqpConnection).CloseCalled)
+}
+
+func Test_CloseConsumerChannelError(t *testing.T) {
+	channel := NewMockAmqpChannel()
+	conn := mockConnection(channel)
+	conn.started = true
+
+	mockCh := NewMockAmqpChannel()
+	mockCh.closeFn = func() error {
+		return fmt.Errorf("channel close error")
+	}
+	conn.consumerChannels = append(conn.consumerChannels, mockCh)
+
+	err := conn.Close()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "channel close error")
+	require.True(t, conn.connection.(*MockAmqpConnection).CloseCalled)
+}
+
 func Test_ConnectToAmqpUrl_Ok(t *testing.T) {
 	amqpConnection := &amqp.Connection{}
 	conn, err := NewFromURL("svc", "amqp://user:password@localhost:12345/vhost")
