@@ -42,7 +42,7 @@ func CollectTopology(serviceName string, setups ...Setup) (spec.Topology, error)
 		connection:   &noopConnection{},
 		queueConsumers: &queueConsumers{
 			consumers:  make(map[string]*queueConsumer),
-			spanNameFn: spanNameFn,
+			spanNameFn: defaultSpanName,
 		},
 		logger:   slog.New(slog.NewTextHandler(discardWriter{}, nil)),
 		topology: spec.Topology{Transport: spec.TransportAMQP, ServiceName: serviceName},

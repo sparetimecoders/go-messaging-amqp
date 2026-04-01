@@ -233,6 +233,42 @@ func Test_CloseWhenNotStarted(t *testing.T) {
 	require.Equal(t, false, conn.connection.(*MockAmqpConnection).CloseCalled)
 }
 
+func Test_CloseClosesConsumerChannels(t *testing.T) {
+	channel := NewMockAmqpChannel()
+	conn := mockConnection(channel)
+	conn.started = true
+
+	mockCh := NewMockAmqpChannel()
+	closeCalled := false
+	mockCh.closeFn = func() error {
+		closeCalled = true
+		return nil
+	}
+	conn.consumerChannels = append(conn.consumerChannels, mockCh)
+
+	err := conn.Close()
+	require.NoError(t, err)
+	require.True(t, closeCalled)
+	require.True(t, conn.connection.(*MockAmqpConnection).CloseCalled)
+}
+
+func Test_CloseConsumerChannelError(t *testing.T) {
+	channel := NewMockAmqpChannel()
+	conn := mockConnection(channel)
+	conn.started = true
+
+	mockCh := NewMockAmqpChannel()
+	mockCh.closeFn = func() error {
+		return fmt.Errorf("channel close error")
+	}
+	conn.consumerChannels = append(conn.consumerChannels, mockCh)
+
+	err := conn.Close()
+	require.Error(t, err)
+	require.Contains(t, err.Error(), "channel close error")
+	require.True(t, conn.connection.(*MockAmqpConnection).CloseCalled)
+}
+
 func Test_ConnectToAmqpUrl_Ok(t *testing.T) {
 	amqpConnection := &amqp.Connection{}
 	conn, err := NewFromURL("svc", "amqp://user:password@localhost:12345/vhost")
@@ -272,24 +308,11 @@ func Test_QueueDeclare(t *testing.T) {
 	err := queueDeclare(channel, &consumerConfig{
 		queueName:    "test",
 		exchangeName: "test",
-		queueHeaders: defaultQueueOptions,
+		queueHeaders: defaultQueueOpts(),
 	})
 	require.NoError(t, err)
 	require.Equal(t, 1, len(channel.QueueDeclarations))
-	require.Equal(t, QueueDeclaration{name: "test", durable: true, autoDelete: false, exclusive: false, noWait: false, args: defaultQueueOptions}, channel.QueueDeclarations[0])
-}
-
-func Test_TransientQueueDeclare(t *testing.T) {
-	channel := NewMockAmqpChannel()
-	err := queueDeclare(channel, &consumerConfig{
-		queueName:    "test",
-		exchangeName: "test",
-		queueHeaders: defaultQueueOptions,
-	})
-	require.NoError(t, err)
-
-	require.Equal(t, 1, len(channel.QueueDeclarations))
-	require.Equal(t, QueueDeclaration{name: "test", durable: true, autoDelete: false, exclusive: false, noWait: false, args: defaultQueueOptions}, channel.QueueDeclarations[0])
+	require.Equal(t, QueueDeclaration{name: "test", durable: true, autoDelete: false, exclusive: false, noWait: false, args: defaultQueueOpts()}, channel.QueueDeclarations[0])
 }
 
 func Test_ExchangeDeclare(t *testing.T) {

@@ -84,6 +84,26 @@ func Test_WithPublishSpanNameFn(t *testing.T) {
 	require.Equal(t, "ex:key", conn.publishSpanNameFn("ex", "key"))
 }
 
+func Test_DefaultSpanName(t *testing.T) {
+	info := spec.DeliveryInfo{
+		Source:      "my-exchange",
+		Destination: "my-exchange.my-queue",
+		Key:         "user.created",
+	}
+	result := defaultSpanName(info)
+	require.Equal(t, "my-queue#user.created", result)
+}
+
+func Test_DefaultSpanName_NoExchangePrefix(t *testing.T) {
+	info := spec.DeliveryInfo{
+		Source:      "other",
+		Destination: "plain-queue",
+		Key:         "order.placed",
+	}
+	result := defaultSpanName(info)
+	require.Equal(t, "plain-queue#order.placed", result)
+}
+
 func Test_CloseListener(t *testing.T) {
 	channel := NewMockAmqpChannel()
 	conn := mockConnection(channel)

@@ -47,6 +47,9 @@ func NewOutboxRawPublisher(publisher *Publisher) *OutboxRawPublisher {
 // PublishRaw publishes a pre-serialized message to AMQP with the given headers.
 // ce-* headers are normalized to cloudEvents:* per the AMQP binding spec.
 func (a *OutboxRawPublisher) PublishRaw(ctx context.Context, routingKey string, payload []byte, headers map[string]string) error {
+	a.publisher.mu.Lock()
+	defer a.publisher.mu.Unlock()
+
 	if a.publisher.channel == nil {
 		return fmt.Errorf("amqp outbox: publisher not initialized")
 	}
