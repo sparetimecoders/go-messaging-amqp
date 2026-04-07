@@ -28,7 +28,7 @@ import (
 	"strings"
 
 	amqplib "github.com/rabbitmq/amqp091-go"
-	"github.com/sparetimecoders/messaging/specification/spec"
+	spec "github.com/sparetimecoders/messaging"
 )
 
 // OutboxRawPublisher wraps an AMQP Publisher to satisfy the outbox.RawPublisher

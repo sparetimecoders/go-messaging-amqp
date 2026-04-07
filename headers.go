@@ -26,7 +26,7 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/sparetimecoders/messaging/specification/spec"
+	spec "github.com/sparetimecoders/messaging"
 )
 
 // Header represents a key-value pair attached to an AMQP message.

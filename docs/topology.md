@@ -128,7 +128,7 @@ This runs setup functions in a dry-run mode to collect endpoint declarations wit
 Use the spec module to validate and visualize exported topologies:
 
 ```go
-import "github.com/sparetimecoders/messaging/specification/spec"
+import spec "github.com/sparetimecoders/messaging"
 
 // Validate one service
 errors := spec.Validate(topology)

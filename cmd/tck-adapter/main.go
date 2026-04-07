@@ -35,10 +35,10 @@ import (
 	"sync"
 
 	amqp "github.com/sparetimecoders/go-messaging-amqp"
-	"github.com/sparetimecoders/messaging/specification/spec"
-	"github.com/sparetimecoders/messaging/specification/spec/spectest"
-	"github.com/sparetimecoders/messaging/specification/tck"
-	"github.com/sparetimecoders/messaging/specification/tck/adapterutil"
+	spec "github.com/sparetimecoders/messaging"
+	"github.com/sparetimecoders/messaging/spectest"
+	"github.com/sparetimecoders/messaging/tck"
+	"github.com/sparetimecoders/messaging/tck/adapterutil"
 )
 
 func main() {

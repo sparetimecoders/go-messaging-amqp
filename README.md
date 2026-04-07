@@ -35,7 +35,7 @@ import (
     "log"
 
     "github.com/sparetimecoders/go-messaging-amqp"
-    "github.com/sparetimecoders/messaging/specification/spec"
+    spec "github.com/sparetimecoders/messaging"
 )
 
 type OrderCreated struct {
