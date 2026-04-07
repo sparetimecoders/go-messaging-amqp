@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.0.3](https://github.com/sparetimecoders/go-messaging-amqp/compare/v0.0.2...v0.0.3) (2026-04-07)
+
+
+### Bug Fixes
+
+* address code review findings ([#38](https://github.com/sparetimecoders/go-messaging-amqp/issues/38)) ([c7a025f](https://github.com/sparetimecoders/go-messaging-amqp/commit/c7a025f27726a37a5261a196a61db0c0d711fb10))
+* address code review issues across AMQP transport ([#34](https://github.com/sparetimecoders/go-messaging-amqp/issues/34)) ([2adf08f](https://github.com/sparetimecoders/go-messaging-amqp/commit/2adf08f177028657d48c23444cdd4c932b1791a6))
+* **deps:** correct messaging import paths ([#40](https://github.com/sparetimecoders/go-messaging-amqp/issues/40)) ([221d47d](https://github.com/sparetimecoders/go-messaging-amqp/commit/221d47d06dd025e172706f4829af5bbbd092efb8))
+* **deps:** update opentelemetry-go monorepo to v1.43.0 ([#39](https://github.com/sparetimecoders/go-messaging-amqp/issues/39)) ([86ca541](https://github.com/sparetimecoders/go-messaging-amqp/commit/86ca541ce18abebbd8b4de49cc9b90d7b36e25f4))
+* propagate parent context in extractToContext ([#35](https://github.com/sparetimecoders/go-messaging-amqp/issues/35)) ([53c75b3](https://github.com/sparetimecoders/go-messaging-amqp/commit/53c75b3771826c6bfa49da10b70392197ac16623))
+
 ## [0.0.2](https://github.com/sparetimecoders/go-messaging-amqp/compare/v0.0.1...v0.0.2) (2026-03-13)
 
 
