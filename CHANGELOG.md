@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.4](https://github.com/sparetimecoders/go-messaging-amqp/compare/v0.0.3...v0.0.4) (2026-06-29)
+
+
+### Bug Fixes
+
+* **deps:** update module github.com/rabbitmq/amqp091-go to v1.12.0 ([#46](https://github.com/sparetimecoders/go-messaging-amqp/issues/46)) ([c655fc7](https://github.com/sparetimecoders/go-messaging-amqp/commit/c655fc7e461b02da5803f9d0805ed361746a9536))
+* **deps:** update opentelemetry-go monorepo to v1.44.0 ([#50](https://github.com/sparetimecoders/go-messaging-amqp/issues/50)) ([75acc8d](https://github.com/sparetimecoders/go-messaging-amqp/commit/75acc8d1d75bb2ff388caed35ae68cb8a6f7e0dc))
+
 ## [0.0.3](https://github.com/sparetimecoders/go-messaging-amqp/compare/v0.0.2...v0.0.3) (2026-04-07)
 
 
